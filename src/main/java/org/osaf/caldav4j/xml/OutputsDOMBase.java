@@ -15,14 +15,12 @@
  */
 package org.osaf.caldav4j.xml;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.jackrabbit.webdav.xml.DomUtil;
 import org.apache.jackrabbit.webdav.xml.Namespace;
 import org.apache.jackrabbit.webdav.xml.XmlSerializable;
 import org.osaf.caldav4j.exceptions.DOMValidationException;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.DOMImplementation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -32,7 +30,7 @@ import java.util.Map;
 
 public abstract class OutputsDOMBase implements OutputsDOM{
 
-    private static final Log log = LogFactory.getLog(OutputsDOMBase.class);
+    private static final Logger log = LoggerFactory.getLogger(OutputsDOMBase.class);
     
     protected abstract String getElementName();
 
@@ -55,43 +53,28 @@ public abstract class OutputsDOMBase implements OutputsDOM{
     public String getQualifiedName(){
         return getNamespaceQualifier() + ":" + getElementName();
     }
-    
-//    public Element outputDOM(Document document) throws DOMValidationException{
-//        Element e = document.createElementNS(getNamespaceURI(),
-//                getQualifiedName());
-//
-//        fillElement(e);
-//        return e;
-//    }
 
-    
-    public Document createNewDocument(DOMImplementation domImplementation)
-            throws DOMException, DOMValidationException {
-        validate();
-
-        Document d = domImplementation.createDocument(getNamespaceURI(),
-                getQualifiedName(), null);
-
-        Element root = (Element) d.getFirstChild();
-
-        fillElement(root, d);
-
-        return d;
-
+    public Document createNewDocument() throws DOMValidationException {
+        try {
+            validate();
+            Document d = DomUtil.createDocument();
+            Element root = toXml(d);
+            d.appendChild(root);
+            return d;
+        } catch (Exception e) {
+            log.error("Error creating Document.");
+            throw new DOMValidationException("Error creating Document.");
+        }
     }
 
     public Element toXml(Document document) {
+        Element root = null;
         try {
             validate();
-        } catch (DOMValidationException e) {
-            e.printStackTrace();
-        }
-
-        Element root = DomUtil.createElement(document, getElementName(), getNamespace());
-
-        try {
+            root = DomUtil.createElement(document, getElementName(), getNamespace());
             fillElement(root, document);
         } catch (DOMValidationException e) {
+            log.error("Error creating element. Validation failed.");
             e.printStackTrace();
         }
 

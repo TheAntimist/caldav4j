@@ -55,13 +55,6 @@ public class TextMatch extends OutputsDOMBase {
     private Boolean caseless = null;
     private Boolean negateCondition = null;
 
-
-    public TextMatch(String caldavNamespaceQualifier, Boolean caseless, Boolean negateCondition,
-                     String collation,
-                     String textToMatch){
-        this(caseless, negateCondition, collation, textToMatch);
-    }
-
     public TextMatch(Boolean caseless, Boolean negateCondition,
     		String collation,
             String textToMatch) {
@@ -74,6 +67,8 @@ public class TextMatch extends OutputsDOMBase {
         // RFC states default collation is i;ascii-casemap
         if (collation == null) {        	
             this.collation = ATTR_VALUE_COLLATION_ASCII;        	
+        } else {
+            this.collation = collation;
         }
 
     }

@@ -16,9 +16,7 @@
 
 package org.osaf.caldav4j.model.request;
 
-import org.apache.jackrabbit.webdav.property.DavPropertyName;
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet;
-import org.apache.jackrabbit.webdav.property.DavPropertySet;
 import org.apache.jackrabbit.webdav.xml.Namespace;
 import org.apache.jackrabbit.webdav.xml.XmlSerializable;
 import org.osaf.caldav4j.CalDAVConstants;
@@ -34,8 +32,8 @@ import java.util.Map;
 /**
  *  @see http://tools.ietf.org/html/rfc4791#section-9.5
  *          <!ELEMENT calendar-multiget ((DAV:allprop |
-                                      DAV:propname |
-                                      DAV:prop)?, DAV:href+)>
+                                         DAV:propname |
+                                         DAV:prop)?, DAV:href+)>
  * [differently from calendar-query...] it takes a list of DAV:href elements,
  * instead of a CALDAV:filter element, to determine which calendar
  * object resources to return.
@@ -54,7 +52,7 @@ public class CalendarMultiget extends OutputsDOMBase implements CalDAVReportRequ
     private boolean allProp = false;
     private boolean propName = false;
     private CalendarData calendarDataProp = null;
-    private List<String> hrefs = null;
+    private List<String> hrefs = new ArrayList<String>();
     private Prop properties = new Prop();
 
     public CalendarMultiget() {
@@ -110,7 +108,7 @@ public class CalendarMultiget extends OutputsDOMBase implements CalDAVReportRequ
         }
         
         // remove double "//" from paths
-        if ( hrefs != null ) { 
+        if ( hrefs != null && !hrefs.isEmpty()) {
 	        for (String uri : hrefs) {
 	        	DavHref href = 
 	        		new DavHref(UrlUtils.removeDoubleSlashes(uri));
@@ -149,6 +147,10 @@ public class CalendarMultiget extends OutputsDOMBase implements CalDAVReportRequ
         this.properties.addChildren(properties);
     }
 
+    public void setProperties(DavPropertyNameSet properties) {
+        this.properties.addChildren(properties.getContent());
+    }
+
     public void addProperty(XmlSerializable propProperty){
         properties.add(propProperty);
     }
@@ -171,7 +173,7 @@ public class CalendarMultiget extends OutputsDOMBase implements CalDAVReportRequ
     }
 
     public void setHrefs(List<String> l) {
-    	hrefs = l;
+    	hrefs.addAll(l);
     }
     
     public List<String> getHrefs() {
@@ -179,7 +181,6 @@ public class CalendarMultiget extends OutputsDOMBase implements CalDAVReportRequ
     }
 
     public void addHref(String name) {
-        if(getHrefs() == null) hrefs = new ArrayList<String>();
         this.hrefs.add(name);
     }
 

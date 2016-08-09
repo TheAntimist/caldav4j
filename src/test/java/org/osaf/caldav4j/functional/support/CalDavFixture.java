@@ -23,9 +23,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.webdav.lib.methods.MkcolMethod;
+import org.apache.jackrabbit.webdav.client.methods.MkColMethod;
 import org.osaf.caldav4j.BaseTestCase;
 import org.osaf.caldav4j.TestConstants;
 import org.osaf.caldav4j.credential.CaldavCredential;
@@ -35,6 +33,8 @@ import org.osaf.caldav4j.support.HttpClientTestUtils;
 import org.osaf.caldav4j.support.HttpClientTestUtils.HttpMethodCallback;
 import org.osaf.caldav4j.util.CaldavStatus;
 import org.osaf.caldav4j.util.UrlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +53,7 @@ import static org.osaf.caldav4j.support.HttpMethodCallbacks.nullCallback;
 public class CalDavFixture
 {
 	// fields -----------------------------------------------------------------
-    protected static final Log log = LogFactory.getLog(CalDavFixture.class);
+    protected static final Logger log = LoggerFactory.getLogger(CalDavFixture.class);
 	
 	private HttpClient httpClient;
 	
@@ -122,7 +122,7 @@ public class CalDavFixture
 	}
 	public void makeCollection(String relativePath) throws IOException
 	{
-		MkcolMethod method = new MkcolMethod(UrlUtils.removeDoubleSlashes(relativePath));
+		MkColMethod method = new MkColMethod(UrlUtils.removeDoubleSlashes(relativePath));
 
 		executeMethod(HttpStatus.SC_CREATED, method, true);
 	}
@@ -229,7 +229,7 @@ public class CalDavFixture
 	}
 
 	protected void mkcol(String path) {
-		MkcolMethod mk = new MkcolMethod(path);
+		MkColMethod mk = new MkColMethod(path);
 	    try {
 	    	executeMethod(HttpStatus.SC_CREATED,  mk, true);
 	    } catch (Exception e){

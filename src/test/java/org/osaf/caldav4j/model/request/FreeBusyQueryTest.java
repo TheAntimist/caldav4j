@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.osaf.caldav4j.exceptions.DOMValidationException;
 import org.osaf.caldav4j.util.XMLUtils;
 import org.osaf.caldav4j.xml.OutputsDOM;
-import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 import java.text.ParseException;
@@ -43,7 +42,7 @@ public class FreeBusyQueryTest
 	{
 		FreeBusyQuery query = createFreeBusyQuery("20000101T000000Z", "20000201T000000Z");
 
-		String expected = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>"
+		String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
 			+ "<C:free-busy-query xmlns:C=\"urn:ietf:params:xml:ns:caldav\">"
 				+ "<C:time-range end=\"20000201T000000Z\" start=\"20000101T000000Z\"/>"
 			+ "</C:free-busy-query>";
@@ -94,8 +93,7 @@ public class FreeBusyQueryTest
 	
 	private static void assertCreateNewDocument(String expected, OutputsDOM output) throws DOMValidationException
 	{
-		DOMImplementation domImplementation = XMLUtils.getDOMImplementation();
-		Document document = output.createNewDocument(domImplementation);
+		Document document = output.createNewDocument();
 		
 		String actual = XMLUtils.toXML(document);
 		

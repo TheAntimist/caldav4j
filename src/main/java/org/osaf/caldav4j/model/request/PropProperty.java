@@ -15,9 +15,6 @@
  */
 package org.osaf.caldav4j.model.request;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.model.Calendar;
 import org.apache.jackrabbit.webdav.property.DavProperty;
 import org.apache.jackrabbit.webdav.property.DavPropertyNameSet;
 import org.apache.jackrabbit.webdav.property.DavPropertySet;
@@ -29,8 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -172,8 +167,8 @@ public class PropProperty<T> extends DefaultDavProperty<T>{
 
     public static Collection<DavProperty> getChildrenfromValue(DavProperty property) {
 
+        Collection<DavProperty> coll = new ArrayList<DavProperty>();
         if(property != null) {
-            List<DavProperty> coll = new ArrayList<DavProperty>();
 
             if (property.getValue() instanceof DavProperty) {
                 coll.add((DavProperty) property.getValue());
@@ -194,26 +189,9 @@ public class PropProperty<T> extends DefaultDavProperty<T>{
                     }
                 }
             }
-
-            return (coll.isEmpty()) ? null : coll;
         }
 
-        return null;
-    }
-
-    public static Calendar getCalendarfromProperty(DavProperty property){
-        Calendar calendar = null;
-        StringReader stringReader = new StringReader(property.getValue().toString());
-        CalendarBuilder calendarBuilder = new CalendarBuilder();
-        try {
-            calendar = calendarBuilder.build(stringReader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserException e) {
-            e.printStackTrace();
-        }
-
-        return calendar;
+        return coll;
     }
 
     protected void fillElement(Element e, Document document) {

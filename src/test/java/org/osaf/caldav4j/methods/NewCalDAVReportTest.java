@@ -1,10 +1,10 @@
 package org.osaf.caldav4j.methods;
 
 import net.fortuna.ical4j.model.Calendar;
+import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.DateTime;
 import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.jackrabbit.webdav.DavException;
 import org.apache.jackrabbit.webdav.property.DavProperty;
 import org.apache.jackrabbit.webdav.property.DavPropertyName;
@@ -19,6 +19,9 @@ import org.osaf.caldav4j.cache.EhCacheResourceCache;
 import org.osaf.caldav4j.exceptions.CalDAV4JException;
 import org.osaf.caldav4j.functional.support.CaldavFixtureHarness;
 import org.osaf.caldav4j.model.request.*;
+import org.osaf.caldav4j.model.response.CalendarDataProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -39,18 +42,16 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by emanon on 5/18/16.
  */
+
 public class NewCalDAVReportTest extends BaseTestCase{
 
-    private static final Log log = LogFactory.getLog(NewCalDAVReportTest.class);
+    private static final Logger log = LoggerFactory.getLogger(NewCalDAVReportTest.class);
     private EhCacheResourceCache myCache = null;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
         CaldavFixtureHarness.provisionGoogleEvents(fixture);
-
-        myCache = CaldavFixtureHarness.createSimpleCache();
-        collection.setCache(myCache);
     }
 
     @After
@@ -62,6 +63,7 @@ public class NewCalDAVReportTest extends BaseTestCase{
     private String ElementoString(Element node) throws TransformerException {
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
         StreamResult result = new StreamResult(new StringWriter());
         DOMSource source = new DOMSource(node);
@@ -96,8 +98,8 @@ public class NewCalDAVReportTest extends BaseTestCase{
         vcalendar.addComp(new Comp("VTIMEZONE"));
         calendarData.setComp(vcalendar);
 
-        CompFilter filter = new CompFilter("C", "VCALENDAR");
-        filter.getCompFilters().add(new CompFilter("C", "VEVENT"));
+        CompFilter filter = new CompFilter("VCALENDAR");
+        filter.getCompFilters().add(new CompFilter("VEVENT"));
         filter.getCompFilters().get(0).setTimeRange(
                 new TimeRange(new DateTime(), new DateTime()));
         CalendarQuery reportInfo = new CalendarQuery();
@@ -109,7 +111,7 @@ public class NewCalDAVReportTest extends BaseTestCase{
     }
 
     @Test
-    public void queryPartialCalendar() throws CalDAV4JException, IOException, TransformerException, ParserConfigurationException, DavException, ParseException {
+    public void queryPartialCalendar() throws CalDAV4JException, IOException, TransformerException, ParserConfigurationException, ParseException, DavException {
         String collectionPath = fixture.getCollectionPath();
         Calendar calendar = null;
 
@@ -117,25 +119,27 @@ public class NewCalDAVReportTest extends BaseTestCase{
         HostConfiguration hostConfig = http.getHostConfiguration();
 
         CalendarQuery calendarQuery = new CalendarQuery();
-        CalendarData calendarData = new CalendarData(CalendarData.EXPAND, new DateTime("20060101T000000Z"), new DateTime("20060105T230000Z"), null);
-        CompFilter vcalendar = new CompFilter("C", "VCALENDAR");
-        vcalendar.addCompFilter(new CompFilter("", "VEVENT"));
-        vcalendar.getCompFilters().get(0).setTimeRange(new TimeRange(new DateTime("20060101T000000Z"), new DateTime("20060105T230000Z")));
+        CalendarData calendarData = new CalendarData(CalendarData.EXPAND, new DateTime("20060103T000000Z"), new DateTime("20060105T230000Z"), null);//new Comp("VCALENDAR"));
+        CompFilter vcalendar = new CompFilter("VCALENDAR");
+        vcalendar.addCompFilter(new CompFilter("VEVENT"));
+        vcalendar.getCompFilters().get(0).setTimeRange(new TimeRange(new DateTime("20060103T000000Z"), new DateTime("20060105T230000Z")));
 
         calendarQuery.setCalendarDataProp(calendarData);
         calendarQuery.setCompFilter(vcalendar);
         printXml(calendarQuery);
-        NewCalDAVReportMethod calDAVReportMethod = new NewCalDAVReportMethod(collectionPath, calendarQuery);
+        CalDAVReportMethod calDAVReportMethod = new CalDAVReportMethod(collectionPath, calendarQuery);
 
         http.executeMethod(hostConfig, calDAVReportMethod);
-        log.info(calDAVReportMethod.getStatusLine());
+        log.info(calDAVReportMethod.getStatusLine().toString());
 
-        Collection<DavProperty> calendars = calDAVReportMethod.getDavProperty(DavPropertyName.create(CalDAVConstants.CALDAV_CALENDAR_DATA, CalDAVConstants.NAMESPACE_CALDAV));
+        Collection<DavProperty> calendars = calDAVReportMethod.getDavProperties(CalDAVConstants.DNAME_CALENDAR_DATA);
 
-        for(DavProperty property: calendars)
-            printXml(property);
-        assertEquals(2, calendars.size());
+        ComponentList templist = new ComponentList();
+
+        for(DavProperty property: calendars){
+            templist.addAll(CalendarDataProperty.getCalendarfromProperty(property).getComponents(Component.VEVENT));
+        }
+
+        assertEquals(3, templist.size());
     }
-
-
 }
